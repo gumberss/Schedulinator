@@ -109,8 +109,13 @@ Drawbacks:
 
 2. If an instance goes down after locking tasks but before releasing them, we face the challenge of identifying and resolving stuck tasks. This requires scanning the Redis keys to locate tasks that remain locked. To determine if a task is genuinely stuck and not merely in the processing phase, we must retrieve the task's score. A similar issue arises if we consider the approach of adding locked tasks to a set and removing them when processing is completed. We want to avoid O(N) operations.
 
+#### Negative Elements Locking
 
+In this solution, when an instance takes tasks for processing, it multiplies the score of these tasks by -1. Consequently, tasks with scores less than 0 are considered locked by an instance of the service and should not be processed by other instances.
 
+To achieve this, the instances must execute an atomic Lua script to acquire the first X tasks and update their scores by multiplying them by -1. This ensures that no other instance will attempt to process the same tasks simultaneously. After completing the processing of tasks, the instance will update the scores to reflect the next execution time. Alternatively, instead of setting a static next recurrence time, we can calculate it by adding a specified interval to the last processing time. This is possible because we have access to the last task score by simply multiplying it by -1 again so determining the new execution time becomes straightforward using the score adding the recurrency time from the task configuration.
+
+To implement this, we can create a global key with a timestamp that represents the next scheduled check for stuck tasks. Whenever an instance completes its processing, it checks if this timestamp has expired. If it has, the instance updates the timestamp to the next scheduled check time and proceeds to identify and handle any stuck tasks. If, for any reason, the instance goes down after updating the timestamp but before checking the tasks, another instance will perform the check once the scheduled time has expired again.
 
 
 
