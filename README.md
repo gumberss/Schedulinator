@@ -83,7 +83,20 @@ Attempt 2: (200ms * 2^1) + jitter (up to 500ms). Worst case: 400 + 500 = 900ms
 
 Attempt 3: (200ms * 2^2) + jitter (up to 500ms). Worst case: 800 + 500 = 1300ms
 
-The sum of all the attempts worst cases will be 2900ms
+The sum of all the attempts' worst cases will be 2900ms
+
+### Multiple Instances
+
+As we aim to scale to millions of schedules, the need arises for running multiple instances of the system concurrently. However, this isn't a straightforward endeavor, given that our primary source of tasks for execution relies on Sorted Sets, and we want to prevent task loss in the event of an instance failure. Let's explore some potential solutions:
+
+#### Global Timestamp
+
+1. When we have 100 instances of this service running concurrently, it's possible that a significant number of them may not process any tasks. This can occur because many tasks may share the same millisecond for execution. For instance, when using cron expressions, it's common to schedule tasks to run every hour, minute, and second, typically starting at the first millisecond of that second. Consequently, instances that execute during the initial millisecond of execution will process a higher number of jobs, while instances that execute during other milliseconds will handle fewer tasks.
+
+2. It's challenging to guarantee that all instances have precisely synchronized time. Even a minor time difference, such as one instance being 10 milliseconds ahead of the others, can lead to that instance effectively blocking the execution of the others for at least 10 milliseconds.
+
+
+
 
 
 
