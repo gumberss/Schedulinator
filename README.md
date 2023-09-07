@@ -40,5 +40,14 @@ That yields the result:
 ```
 Note that only the first three elements in the schedules Sorted Set were returned
 
+To address a potential corner case where the service might experience a failure right after task execution but before updating the Sorted Set, resulting in outdated data within Redis, there is no foolproof solution. This situation resembles the Two Generals' problem, making it challenging to ensure absolute synchronization. In a similar scenario, consider when the scheduler sends a request to a service, and the service begins processing it. However, before the service can return a response, the scheduler experiences a timeout. In this case, the task may end up being reprocessed.
 
+<figure class="image">
+  <img src="https://github.com/gumberss/Schedulinator/assets/38296002/2d810b13-f71d-4150-80fe-8a45dc3e4367" alt="The service went down before updating the score">
+  <figcaption>The service went down before updating the score</figcaption>
+</figure>
 
+<figure class="image">
+  <img src="https://github.com/gumberss/Schedulinator/assets/38296002/d489fc74-c1dd-4277-ac1e-7f3eda5e5db2" alt="The requester service received a timeout, but the receiver service processed the first request">
+  <figcaption>The requester service received a timeout, but the receiver service processed the first request</figcaption>
+</figure>
