@@ -15,7 +15,7 @@ We are able to get the tasks to execute in order with the command:
 
 ```zrange schedules 0 -1```
 
-With the result 
+That yields the result:
 ```
 1) "task1"
 2) "task2"
@@ -23,3 +23,22 @@ With the result
 4) "task4"	 
 5) "task5"
 ```
+
+And that's not all; you can also retrieve only the schedules that should have been executed up to the present moment. Consider today's date as September 7, 2023, at 00:00:00 (Unix Timestamp: 1694044800). In this scenario, you can obtain the range of tasks that should have been executed by now using the following command:
+
+```zrangebyscore schedules 0 1694044800 withscores```
+
+That yields the result:
+
+```
+1) "task1"
+2) 1693964754.0
+3) "task2"
+4) 1693965795.0
+5) "task3"
+6) 1693974803.0
+```
+Note that only the first three elements in the schedules Sorted Set were returned
+
+
+
