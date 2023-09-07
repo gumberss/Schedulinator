@@ -46,8 +46,23 @@ To address a potential corner case where the service might experience a failure 
   <img src="https://github.com/gumberss/Schedulinator/assets/38296002/2d810b13-f71d-4150-80fe-8a45dc3e4367" alt="The service went down before updating the score">
   <figcaption>The service went down before updating the score</figcaption>
 </figure>
-
+ <br/><br/>
 <figure class="image">
   <img src="https://github.com/gumberss/Schedulinator/assets/38296002/d489fc74-c1dd-4277-ac1e-7f3eda5e5db2" alt="The requester service received a timeout, but the receiver service processed the first request">
   <figcaption>The requester service received a timeout, but the receiver service processed the first request</figcaption>
 </figure>
+ <br/><br/>
+
+One possible approach to mitigate the other service timeout issue is to always send a message or request to the endpoint with a unique identifier generated deterministically based on the score of the task within the Sorted Set. By doing so, you can rely on the receiving service to leverage idempotency to handle the problem. This way, even if the data within Redis becomes temporarily out of date due to a server failure, the unique identifier associated with each task can help ensure that duplicate requests are appropriately handled and prevent unintended or duplicate task executions.
+
+<figure class="image">
+  <img src="https://github.com/gumberss/Schedulinator/assets/38296002/7859d3d8-e625-414b-a800-4eb36e85ba04" alt="Resend the request with the task score and ID as the idempotency key">
+  <figcaption>Resend the request with the task score and ID as the idempotency key</figcaption>
+</figure>
+ <br/><br/>
+
+ 
+
+
+
+
