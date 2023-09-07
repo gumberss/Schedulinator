@@ -2,6 +2,8 @@
 
 The core objective of this project is to develop a proof of concept for a high-performance scheduler capable of efficiently processing millions of tasks per second, leveraging the power of Redis Sorted Sets. This initiative seeks to identify the next tasks directly through Redis, thus eliminating the need for expensive database reads. Before using this project, it's crucial to conduct a thorough analysis to determine if it aligns with your specific needs. For instance, if your execution rate is relatively low, opting for Redis may not be the most cost-effective choice. Redis incurs costs based on the number of nodes (when using AWS at least), so in such cases, using a database like DynamoDb directly could be a more economical alternative.
 
+### Sorted Set with Timestamp
+
 By utilizing the Unix Timestamp or another integer-based date representation as the score within the sorted set, you can precisely determine when a task is scheduled to run. Tasks are stored in ascending order based on their scores, meaning that tasks with lower scores should be executed first, while tasks with higher scores indicate a later execution time. Let's illustrate this concept with an example:
 
 ``` 
@@ -40,6 +42,8 @@ That yields the result:
 ```
 Note that only the first three elements in the schedules Sorted Set were returned
 
+### Idempotency
+
 To address a potential corner case where the service might experience a failure right after task execution but before updating the Sorted Set, resulting in outdated data within Redis, there is no foolproof solution. This situation resembles the Two Generals' problem, making it challenging to ensure absolute synchronization. In a similar scenario, consider when the scheduler sends a request to a service, and the service begins processing it. However, before the service can return a response, the scheduler experiences a timeout. In this case, the task may end up being reprocessed.
 
 <figure class="image">
@@ -60,9 +64,26 @@ One possible approach to mitigate the other service timeout issue is to always s
   <figcaption>Resend the request with the task score and ID as the idempotency key</figcaption>
 </figure>
  <br/><br/>
-
  
+### Retry Policy
 
+While the retry policy functions well for one-time tasks, it's important to ensure that the recurrence interval for repeated tasks is set longer than the worst-case scenario for the retry policy. This prevents a cascading effect of retries and recurring events. You can determine the retry policy for recurring tasks using the following formula:
+
+![image](https://github.com/gumberss/Schedulinator/assets/38296002/e77a21a1-7b36-4a63-a6ef-a5471fca7e4d)
+
+As an example, let's consider the retry policy with the following parameters: attempts=3, interval=200ms, and jitterLimit=500ms. This policy implies that the system will attempt a maximum of 3 retries. Each retry will occur after a time interval calculated as 200ms multiplied by 2 raised to the power of the current attempt, plus a random value from 0 to the jitterLimit value. Therefore, in the worst case of this example, as will be illustrated below, the minimum recurrence time for the tasks should be set to 2900ms or 2.9 seconds.
+
+![image](https://github.com/gumberss/Schedulinator/assets/38296002/723b59d7-0dd6-4286-a301-ac8fb9f05726)
+
+Step by step:
+
+Attempt 1: (200ms * 2^0) + jitter (up to 500ms). Worst case: 200 + 500 = 700ms
+
+Attempt 2: (200ms * 2^1) + jitter (up to 500ms). Worst case: 400 + 500 = 900ms
+
+Attempt 3: (200ms * 2^2) + jitter (up to 500ms). Worst case: 800 + 500 = 1300ms
+
+The sum of all the attempts worst cases will be 2900ms
 
 
 
