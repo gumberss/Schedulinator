@@ -91,9 +91,26 @@ As we aim to scale to millions of schedules, the need arises for running multipl
 
 #### Global Timestamp
 
+We can establish a global timestamp in Redis and each instance would set the current time to this global variable, Subsequently, it would retrieve the tasks scheduled for execution from the previous global timestamp value up to the present moment.
+
+Drawbacks:
+
 1. When we have 100 instances of this service running concurrently, it's possible that a significant number of them may not process any tasks. This can occur because many tasks may share the same millisecond for execution. For instance, when using cron expressions, it's common to schedule tasks to run every hour, minute, and second, typically starting at the first millisecond of that second. Consequently, instances that execute during the initial millisecond of execution will process a higher number of jobs, while instances that execute during other milliseconds will handle fewer tasks.
 
 2. It's challenging to guarantee that all instances have precisely synchronized time. Even a minor time difference, such as one instance being 10 milliseconds ahead of the others, can lead to that instance effectively blocking the execution of the others for at least 10 milliseconds.
+
+#### Binary Locking 
+
+The default locking mechanism offers a potential solution. We can create a key with an associated lock for each item in the Sorted Set that is taken for processing and then release the lock when the task is completed. 
+
+Drawbacks:
+
+1. Identifying which tasks are currently in progress within the sorted set can be a complex task. In the proposed approach, each instance of the system would need to fetch the top X tasks and then check if they are locked. If a task is locked, the instance would have to skip those X tasks and retry until it finds unlocked items. However, with 100 instances of the service, this could potentially result in skipping a significant number of tasks (99 * X) before successfully obtaining a batch of X unlocked items. This approach may not be efficient for large-scale systems.
+
+2. If an instance goes down after locking tasks but before releasing them, we face the challenge of identifying and resolving stuck tasks. This requires scanning the Redis keys to locate tasks that remain locked. To determine if a task is genuinely stuck and not merely in the processing phase, we must retrieve the task's score. A similar issue arises if we consider the approach of adding locked tasks to a set and removing them when processing is completed. We want to avoid O(N) operations.
+
+
+
 
 
 
