@@ -57,7 +57,7 @@ To address a potential corner case where the service might experience a failure 
 </figure>
  <br/><br/>
 
-One possible approach to mitigate the other service timeout issue is to always send a message or request to the endpoint with a unique identifier generated deterministically based on the score of the task within the Sorted Set. By doing so, you can rely on the receiving service to leverage idempotency to handle the problem. This way, even if the data within Redis becomes temporarily out of date due to a server failure, the unique identifier associated with each task can help ensure that duplicate requests are appropriately handled and prevent unintended or duplicate task executions.
+One possible approach to mitigate the other service timeout issue is to always send a request to the endpoint with a unique identifier generated deterministically based on the score of the task within the Sorted Set. By doing so, you can rely on the receiving service to leverage idempotency to handle the problem. This way, even if the data within Redis becomes temporarily out of date due to a server failure, the unique identifier associated with each task can help ensure that duplicate requests are appropriately handled and prevent unintended or duplicate task executions.
 
 <figure class="image">
   <img src="https://github.com/gumberss/Schedulinator/assets/38296002/7859d3d8-e625-414b-a800-4eb36e85ba04" alt="Resend the request with the task score and ID as the idempotency key">
