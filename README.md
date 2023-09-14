@@ -117,6 +117,15 @@ To achieve this, the instances must execute an atomic Lua script to acquire the 
 
 To implement this, we can create a global key with a timestamp that represents the next scheduled check for stuck tasks. Whenever an instance completes its processing, it checks if this timestamp has expired. If it has, the instance updates the timestamp to the next scheduled check time and proceeds to identify and handle any stuck tasks. If, for any reason, the instance goes down after updating the timestamp but before checking the tasks, another instance will perform the check once the scheduled time has expired again.
 
+#### Tracking Task Executions
+
+Depending on your project's requirements, you may need to monitor how many times a scheduled task has been executed. Although this may seem straightforward, it can present challenges. Various issues can arise during the process, making it complex to maintain an accurate count of task executions.
+
+One simple solution for tracking the number of successful task executions involves incrementing a database record for each task. Alternatively, you can create a compound unique index in the database, combining the task ID and the expected execution time. These approaches provide a count of 'at least' how many times a task has been successfully executed.
+
+#### Scheduling Events in the Message Queue
+
+This project serves as a proof of concept, where making a request and publishing an event on the message queue are conceptually similar from a business logic perspective. Many of the challenges previously discussed can also occur with messages, but idempotency can effectively address these issues. Currently, our focus is on sending requests."
 
 
 
