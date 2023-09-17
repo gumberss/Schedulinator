@@ -117,6 +117,10 @@ To achieve this, the instances must execute an atomic Lua script to acquire the 
 
 To implement this, we can create a global key with a timestamp that represents the next scheduled check for stuck tasks. Whenever an instance completes its processing, it checks if this timestamp has expired. If it has, the instance updates the timestamp to the next scheduled check time and proceeds to identify and handle any stuck tasks. If, for any reason, the instance goes down after updating the timestamp but before checking the tasks, another instance will perform the check once the scheduled time has expired again.
 
+### Limitation
+
+Every system has the potential to become an infinite game, and this complexity becomes more pronounced when addressing the challenges of distributed systems. As discussed earlier, this project serves as a proof of concept to demonstrate the effective scheduling of a significant volume of recurring tasks, with scalability being the primary goal. While additional features could enhance the system's functionality, they are considered beyond the POC's scope. Below, we will briefly mention some of these potential features for reference.
+
 #### Tracking Task Executions
 
 Depending on your project's requirements, you may need to monitor how many times a scheduled task has been executed. Although this may seem straightforward, it can present challenges. Various issues can arise during the process, making it complex to maintain an accurate count of task executions.
