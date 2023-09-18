@@ -2,7 +2,7 @@
 
 The core objective of this project is to develop a proof of concept for a high-performance scheduler capable of efficiently processing millions of tasks per second, leveraging the power of Redis Sorted Sets. This initiative seeks to identify the next tasks directly through Redis, thus eliminating the need for expensive database reads. Before using this project, it's crucial to conduct a thorough analysis to determine if it aligns with your specific needs. For instance, if your execution rate is relatively low, opting for Redis may not be the most cost-effective choice. Redis incurs costs based on the number of nodes (when using AWS at least), so in such cases, using a database like DynamoDb directly could be a more economical alternative.
 
-### Sorted Set with Timestamp
+## Sorted Set with Timestamp
 
 By utilizing the Unix Timestamp or another integer-based date representation as the score within the sorted set, you can precisely determine when a task is scheduled to run. Tasks are stored in ascending order based on their scores, meaning that tasks with lower scores should be executed first, while tasks with higher scores indicate a later execution time. Let's illustrate this concept with an example:
 
@@ -42,7 +42,7 @@ That yields the result:
 ```
 Note that only the first three elements in the schedules Sorted Set were returned
 
-### Idempotency
+## Idempotency
 
 To address a potential corner case where the service might experience a failure right after task execution but before updating the Sorted Set, resulting in outdated data within Redis, there is no foolproof solution. This situation resembles the Two Generals' problem, making it challenging to ensure absolute synchronization. In a similar scenario, consider when the scheduler sends a request to a service, and the service begins processing it. However, before the service can return a response, the scheduler experiences a timeout. In this case, the task may end up being reprocessed.
 
@@ -65,7 +65,7 @@ One possible approach to mitigate the other service timeout issue is to always s
 </figure>
  <br/><br/>
  
-### Retry Policy
+## Retry Policy
 
 While the retry policy functions well for one-time tasks, it's important to ensure that the recurrence interval for repeated tasks is set longer than the worst-case scenario for the retry policy. This prevents a cascading effect of retries and recurring events. You can determine the retry policy for recurring tasks using the following formula:
 
@@ -85,11 +85,11 @@ Attempt 3: (200ms * 2^2) + jitter (up to 500ms). Worst case: 800 + 500 = 1300ms
 
 The sum of all the attempts' worst cases will be 2900ms
 
-### Multiple Instances
+## Multiple Instances
 
 As we aim to scale to millions of schedules, the need arises for running multiple instances of the system concurrently. However, this isn't a straightforward endeavor, given that our primary source of tasks for execution relies on Sorted Sets, and we want to prevent task loss in the event of an instance failure. Let's explore some potential solutions:
 
-#### Global Timestamp
+### Global Timestamp
 
 We can establish a global timestamp in Redis and each instance would set the current time to this global variable, Subsequently, it would retrieve the tasks scheduled for execution from the previous global timestamp value up to the present moment.
 
@@ -99,7 +99,7 @@ Drawbacks:
 
 2. It's challenging to guarantee that all instances have precisely synchronized time. Even a minor time difference, such as one instance being 10 milliseconds ahead of the others, can lead to that instance effectively blocking the execution of the others for at least 10 milliseconds.
 
-#### Binary Locking 
+### Binary Locking 
 
 The default locking mechanism offers a potential solution. We can create a key with an associated lock for each item in the Sorted Set that is taken for processing and then release the lock when the task is completed. 
 
@@ -109,7 +109,7 @@ Drawbacks:
 
 2. If an instance goes down after locking tasks but before releasing them, we face the challenge of identifying and resolving stuck tasks. This requires scanning the Redis keys to locate tasks that remain locked. To determine if a task is genuinely stuck and not merely in the processing phase, we must retrieve the task's score. A similar issue arises if we consider the approach of adding locked tasks to a set and removing them when processing is completed. We want to avoid O(N) operations.
 
-#### Negative Elements Locking
+### Negative Elements Locking
 
 In this solution, when an instance takes tasks for processing, it multiplies the score of these tasks by -1. Consequently, tasks with scores less than 0 are considered locked by an instance of the service and should not be processed by other instances.
 
@@ -117,63 +117,49 @@ To achieve this, the instances must execute an atomic Lua script to acquire the 
 
 To implement this, we can create a global key with a timestamp that represents the next scheduled check for stuck tasks. Whenever an instance completes its processing, it checks if this timestamp has expired. If it has, the instance updates the timestamp to the next scheduled check time and proceeds to identify and handle any stuck tasks. If, for any reason, the instance goes down after updating the timestamp but before checking the tasks, another instance will perform the check once the scheduled time has expired again.
 
-### Limitation
-
-Every system has the potential to become an infinite game, and this complexity becomes more pronounced when addressing the challenges of distributed systems. As discussed earlier, this project serves as a proof of concept to demonstrate the effective scheduling of a significant volume of recurring tasks, with scalability being the primary goal. While additional features could enhance the system's functionality, they are considered beyond the POC's scope. Below, we will briefly mention some of these potential features for reference.
-
-#### Tracking Task Executions
-
-Depending on your project's requirements, you may need to monitor how many times a scheduled task has been executed. Although this may seem straightforward, it can present challenges. Various issues can arise during the process, making it complex to maintain an accurate count of task executions.
-
-One simple solution for tracking the number of successful task executions involves incrementing a database record for each task. Alternatively, you can create a compound unique index in the database, combining the task ID and the expected execution time. These approaches provide a count of 'at least' how many times a task has been successfully executed.
-
-#### Scheduling Events in the Message Queue
-
-This project serves as a proof of concept, where making a request and publishing an event on the message queue are conceptually similar from a business logic perspective. Many of the challenges previously discussed can also occur with messages, but idempotency can effectively address these issues. Currently, our focus is on sending requests."
-
-### Limitation
+## Limitation
 
 Every system has the potential to become an infinite game, and this complexity becomes more pronounced when addressing the challenges of distributed systems, as discussed earlier. This project serves as a proof of concept to demonstrate the effective scheduling of a significant volume of recurring tasks, with scalability being the primary goal. While additional features could enhance the system's functionality, they are considered beyond the POC's scope. Below, we will briefly mention some of these potential features for reference.
 
-#### Execution Count
+### Execution Count
 
 Depending on your project's business rules, you may need to keep track of the number of times a scheduled task has been successfully executed. While this may seem like a straightforward task, it can introduce complexities. Several challenges can emerge during this process, making it difficult to ensure an accurate count of task executions.
 
 One relatively simple solution for tracking the number of successful task executions is to increment a database record for each task or create a compound unique index in the database based on the task ID and the expected execution time. These approaches provide a count of how many times 'at least' a task has been executed successfully.
 
-#### Scheduling Events in a Message Queue
+### Scheduling Events in a Message Queue
 
 This project serves as a proof of concept, where making a request and publishing an event on the message queue are conceptually equivalent in terms of the service's business logic. Many of the issues mentioned earlier can also arise when dealing with messages, and idempotency mechanisms can help mitigate them. For the time being, we will limit our discussion to sending requests.
 
-#### Redis Unreachable 
+### Redis Unreachable 
 
 Another potential limitation is the case when Redis becomes unreachable. While there are various strategies to handle such situations, we will explore some of them shortly. These strategies become essential when you require high availability, mainly in scenarios where Redis replication spans multiple regions, and all of them become unreachable. It's worth noting that this is a highly specific use case and won't be part of our Proof of Concept (POC) at this time.
 
-##### Persistent DB Synced with Redis
+#### Persistent DB Synced with Redis
 
 One solution would involve updating not only the sorted set with the new score each time the task runs but also the persistent database. In this configuration, even if Redis becomes unreachable, the system can continue to operate effectively, ensuring availability.
 
-###### Drawbacks
+##### Drawbacks
 
 Synchronizing Redis with the persistent database in every execution can significantly increase the cost of updating data in the database. In this case, Redis  would primarily helps in reducing the need to read data from the database, not the write. Therefore, I recommend carefully evaluating whether this approach is a cost-effective solution for your specific use case.
 
-##### Critical Operation Only
+#### Critical Operation Only
 
 Another solution is to assign a criticality value to tasks and operate only on critical tasks until Redis becomes available again. This approach helps conserve database resources by avoiding unnecessary reads and writes for non-critical tasks.
 
-###### Drawbacks
+##### Drawbacks
 
 Tasks with lower criticality will remain dormant until Redis becomes reachable again.
 
-#### Re-synchronize Redis
+### Re-synchronize Redis
 
 When Redis goes down in all replicas and comes back up, it won't have any data stored in memory. To restore the system's operation, we need to re-add all the schedules to memory. We will explore some of the possibilities for doing this below.
 
-##### Pessismitic Locking
+#### Pessismitic Locking
 
 One approach could involve each instance of the service selecting certain tasks from the database and locking them until they are updated in Redis using pessimistic locking ([example in postgress](https://www.2ndquadrant.com/en/blog/what-is-select-skip-locked-for-in-postgresql-9-5/)).
 
-##### Optimistic locking
+#### Optimistic locking
 
 If you're not familiar with how Optimistic Locking works, you can refer to [this article](https://www.2ndquadrant.com/en/blog/postgresql-anti-patterns-read-modify-write-cycles/) can explain it for you.
 
