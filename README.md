@@ -145,3 +145,22 @@ One relatively simple solution for tracking the number of successful task execut
 
 This project serves as a proof of concept, where making a request and publishing an event on the message queue are conceptually equivalent in terms of the service's business logic. Many of the issues mentioned earlier can also arise when dealing with messages, and idempotency mechanisms can help mitigate them. For the time being, we will limit our discussion to sending requests.
 
+#### Redis Unreachable 
+
+Another potential limitation is the case when Redis becomes unreachable. While there are various strategies to handle such situations, we will explore some of them shortly. These strategies become essential when you require high availability, mainly in scenarios where Redis replication spans multiple regions, and all of them become unreachable. It's worth noting that this is a highly specific use case and won't be part of our Proof of Concept (POC) at this time.
+
+##### Persistent DB Synced with Redis
+
+One solution would involve updating not only the sorted set with the new score each time the task runs but also the persistent database. In this configuration, even if Redis becomes unreachable, the system can continue to operate effectively, ensuring availability.
+
+###### Drawbacks
+
+Synchronizing Redis with the persistent database in every execution can significantly increase the cost of updating data in the database. In this case, Redis  would primarily helps in reducing the need to read data from the database, not the write. Therefore, I recommend carefully evaluating whether this approach is a cost-effective solution for your specific use case.
+
+##### Critical Operation Only
+
+Another solution is to assign a criticality value to tasks and operate only on critical tasks until Redis becomes available again. This approach helps conserve database resources by avoiding unnecessary reads and writes for non-critical tasks.
+
+###### Drawbacks
+
+Tasks with lower criticality will remain dormant until Redis becomes reachable again.
