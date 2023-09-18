@@ -131,7 +131,17 @@ One simple solution for tracking the number of successful task executions involv
 
 This project serves as a proof of concept, where making a request and publishing an event on the message queue are conceptually similar from a business logic perspective. Many of the challenges previously discussed can also occur with messages, but idempotency can effectively address these issues. Currently, our focus is on sending requests."
 
+### Limitation
 
+Every system has the potential to become an infinite game, and this complexity becomes more pronounced when addressing the challenges of distributed systems, as discussed earlier. This project serves as a proof of concept to demonstrate the effective scheduling of a significant volume of recurring tasks, with scalability being the primary goal. While additional features could enhance the system's functionality, they are considered beyond the POC's scope. Below, we will briefly mention some of these potential features for reference.
 
+#### Execution Count
 
+Depending on your project's business rules, you may need to keep track of the number of times a scheduled task has been successfully executed. While this may seem like a straightforward task, it can introduce complexities. Several challenges can emerge during this process, making it difficult to ensure an accurate count of task executions.
+
+One relatively simple solution for tracking the number of successful task executions is to increment a database record for each task or create a compound unique index in the database based on the task ID and the expected execution time. These approaches provide a count of how many times 'at least' a task has been executed successfully.
+
+#### Scheduling Events in a Message Queue
+
+This project serves as a proof of concept, where making a request and publishing an event on the message queue are conceptually equivalent in terms of the service's business logic. Many of the issues mentioned earlier can also arise when dealing with messages, and idempotency mechanisms can help mitigate them. For the time being, we will limit our discussion to sending requests.
 
