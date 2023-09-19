@@ -1,0 +1,39 @@
+version: '3.5'
+
+services:
+  db: 
+    image: postgres
+    hostname: db
+    environment:
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: schedules
+    ports:
+      - "5433:5432"
+    networks:
+      - schedulinator-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '1GB'
+
+  redis:
+    container_name: redis-dev
+    image: redis:alpine
+    restart: always
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_HOST_PASSWORD"
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_HOST_PASSWORD=pass
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '1GB'
+    networks:
+      - schedulinator-network
+
+networks:
+  schedulinator-network:
+    driver: bridge
