@@ -13,6 +13,7 @@ tokio = { version = "1.32.0", features = ["full"] }
 uuid = { version = "1.4.1", features = ["v4"] }
 warp = "0.3.5"
 deadpool-postgres = "0.10"
+tokio-postgres = { version = "0.7", features = ["with-uuid-0_8"] }
 deadpool-redis = { version = "0.12", features = ["serde"] }
 serde_json = "1"
 reqwest = "0.11"
