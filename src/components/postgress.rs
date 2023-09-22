@@ -19,7 +19,7 @@ pub fn configure() -> Pool {
     cfg.password = Some(env::var("DB_PASSWORD").unwrap_or("pass".into()).to_string());
 
     let pool_size = env::var("POOL_SIZE")
-        .unwrap_or("125".to_string())
+        .unwrap_or("400".to_string())
         .parse::<usize>()
         .unwrap();
 
