@@ -1,6 +1,8 @@
 use actix_web::{web, App, HttpServer};
+mod adapters;
 mod components;
 mod http_in;
+mod logic;
 mod schemas;
 use http_in::*;
 
@@ -13,7 +15,7 @@ async fn main() -> std::io::Result<()> {
                 redis_pool: components::redis::configure(),
                 postgress_pool: components::postgress::configure(),
             }))
-            .service(hello)
+            .service(register)
             .service(echo)
     })
     .bind(("127.0.0.1", 8080))?
