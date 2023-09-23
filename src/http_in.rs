@@ -5,7 +5,7 @@ use actix_web::{get, post, web, HttpResponse, Responder};
 use futures::future;
 
 use deadpool_redis::{
-    redis::{cmd, FromRedisValue},
+    redis::{cmd, Value},
     Config, Runtime,
 };
 
@@ -47,19 +47,21 @@ async fn register(
     let timestamp_next_execution_time = next_execution_time.unwrap().timestamp();
     let mut conn = conn_future.await.unwrap();
 
-    //todo: change to id
-    let redis_score_inserted_result = cmd("ZADD")
+    let redis_task = adapters::wire_out::redis::task::to_dto(&task);
+
+    let multi_result = cmd("MULTI").query_async::<_, ()>(&mut *conn).await;
+
+    let zadd_result = cmd("ZADD")
         .arg(&[
             "schedules",
             &timestamp_next_execution_time.to_string(),
+            //todo: change to id
             &task.name,
         ])
         .query_async::<_, ()>(&mut conn)
         .await;
 
-    let redis_task = adapters::wire_out::redis::task::to_dto(&task);
-
-    let redis_task_inserted_result = cmd("SET")
+    let set_result = cmd("SET")
         .arg(&[
             format!("task_{}", task.name.to_string()),
             serde_json::to_string(&redis_task).unwrap(),
@@ -67,14 +69,14 @@ async fn register(
         .query_async::<_, ()>(&mut conn)
         .await;
 
-    return match (redis_score_inserted_result, redis_task_inserted_result) {
-        (Err(_), Err(_)) => {
-            HttpResponse::BadRequest().body(format!("It wasn't possible to insert on Redis"))
-        }
-        (Ok(_), Err(_)) | (Err(_), Ok(_)) => HttpResponse::BadRequest().body(format!(
+    let exec_results = cmd("EXEC").query_async::<_, ()>(&mut *conn).await;
+
+    return match exec_results {
+        Err(_) => HttpResponse::BadRequest().body(format!("It wasn't possible to insert on Redis")),
+        /*  (Ok(_), Err(_)) | (Err(_), Ok(_)) => HttpResponse::BadRequest().body(format!(
             "Operation Partially Completed, but some error occured, resend the request"
-        )),
-        (Ok(_), Ok(_)) => HttpResponse::Ok().body("Ok"),
+        )), */
+        Ok(_) => HttpResponse::Ok().body("Ok"),
     };
 
     /*  let mut conn = data.redis_pool.get().await.unwrap();
