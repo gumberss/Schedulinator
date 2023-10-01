@@ -1,12 +1,6 @@
-use std::process::Output;
-
 use crate::adapters::wire_out;
 use crate::schemas::models::task;
-use deadpool_redis::{
-    redis::{cmd, Value},
-    Config, Pool, Runtime,
-};
-use futures::{future, Future};
+use deadpool_redis::{redis::cmd, Pool};
 
 pub async fn insert_task(
     timestamp_next_execution_time: i64,
