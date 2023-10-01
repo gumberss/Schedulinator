@@ -49,29 +49,9 @@ async fn register(
 
     return match insert_cache_result {
         Err(_) => HttpResponse::BadRequest().body(format!("It wasn't possible to insert on Redis")),
-        /*  (Ok(_), Err(_)) | (Err(_), Ok(_)) => HttpResponse::BadRequest().body(format!(
-            "Operation Partially Completed, but some error occured, resend the request"
-        )), */
+
         Ok(_) => HttpResponse::Ok().body("Ok"),
     };
-
-    /*  let mut conn = data.redis_pool.get().await.unwrap();
-    let value_r: String = cmd("GET")
-        .arg(&["teste"])
-        .query_async(&mut conn)
-        .await
-        .unwrap();
-
-     let mut conn_p = data.postgress_pool.get().await.unwrap();
-
-    let stmt = conn_p
-        .prepare_cached("SELECT id from schedules limit 1")
-        .await
-        .unwrap();
-    let rows = conn_p.query(&stmt, &[]).await.unwrap();
-    let value_p: i32 = rows[0].get(0);
-    let value_p_s: String = value_p.to_string();
-    HttpResponse::Ok().body(value_p_s + &value_r)*/
 }
 
 #[post("/echo")]

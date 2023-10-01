@@ -41,9 +41,6 @@ pub async fn insert_task(
 
     return match exec_results {
         Err(_) => Err(format!("It wasn't possible to insert on Redis")),
-        /*  (Ok(_), Err(_)) | (Err(_), Ok(_)) => HttpResponse::BadRequest().body(format!(
-            "Operation Partially Completed, but some error occured, resend the request"
-        )), */
         Ok(_) => Ok(()),
     };
 }
