@@ -1,6 +1,7 @@
 use actix_web::{web, App, HttpServer};
 mod adapters;
 mod components;
+mod diplomat;
 mod http_in;
 mod logic;
 mod schemas;

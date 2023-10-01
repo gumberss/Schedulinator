@@ -2,17 +2,12 @@ use serde_json;
 use std::str::FromStr;
 
 use actix_web::{get, post, web, HttpResponse, Responder};
-use futures::future;
-
-use deadpool_redis::{
-    redis::{cmd, Value},
-    Config, Runtime,
-};
 
 use chrono::Utc;
 use cron::Schedule;
 
 use crate::adapters;
+use crate::diplomat;
 use crate::logic::task;
 use crate::schemas::{components::AppComponents, wire_in};
 
@@ -21,7 +16,6 @@ async fn register(
     data: web::Data<AppComponents>,
     payload: web::Json<wire_in::task::Task>,
 ) -> impl Responder {
-    let conn_future = data.redis_pool.get();
     let task = adapters::wire_in::task::to_model(&payload);
     let is_valid = task::is_minimum_recurrence_time_valid(&task);
 
@@ -45,33 +39,15 @@ async fn register(
     }
     //todo: insert to the database
     let timestamp_next_execution_time = next_execution_time.unwrap().timestamp();
-    let mut conn = conn_future.await.unwrap();
 
-    let redis_task = adapters::wire_out::redis::task::to_dto(&task);
+    let insert_cache_result = diplomat::redis::insert_task(
+        timestamp_next_execution_time,
+        &task,
+        data.redis_pool.to_owned(),
+    )
+    .await;
 
-    let multi_result = cmd("MULTI").query_async::<_, ()>(&mut *conn).await;
-
-    let zadd_result = cmd("ZADD")
-        .arg(&[
-            "schedules",
-            &timestamp_next_execution_time.to_string(),
-            //todo: change to id
-            &task.name,
-        ])
-        .query_async::<_, ()>(&mut conn)
-        .await;
-
-    let set_result = cmd("SET")
-        .arg(&[
-            format!("task_{}", task.name.to_string()),
-            serde_json::to_string(&redis_task).unwrap(),
-        ])
-        .query_async::<_, ()>(&mut conn)
-        .await;
-
-    let exec_results = cmd("EXEC").query_async::<_, ()>(&mut *conn).await;
-
-    return match exec_results {
+    return match insert_cache_result {
         Err(_) => HttpResponse::BadRequest().body(format!("It wasn't possible to insert on Redis")),
         /*  (Ok(_), Err(_)) | (Err(_), Ok(_)) => HttpResponse::BadRequest().body(format!(
             "Operation Partially Completed, but some error occured, resend the request"
