@@ -1,8 +1,9 @@
+use std::env;
+use std::time::Duration;
+
 use deadpool_redis::{
     ConnectionAddr, ConnectionInfo, Pool, PoolConfig, RedisConnectionInfo, Runtime, Timeouts,
 };
-use std::env;
-use std::time::Duration;
 
 pub fn configure() -> Pool {
     let mut cfg = deadpool_redis::Config::default();
@@ -25,5 +26,5 @@ pub fn configure() -> Pool {
         },
     });
 
-    return cfg.create_pool(Some(Runtime::Tokio1)).unwrap();
+    cfg.create_pool(Some(Runtime::Tokio1)).unwrap()
 }

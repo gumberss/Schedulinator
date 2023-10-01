@@ -42,23 +42,24 @@ async fn register(
     match diplomat::postgres::task::insert(&task, data.postgress_pool.to_owned()).await {
         Err(err) => {
             println!("error: {}", err.as_str());
-            return HttpResponse::BadRequest().body(format!(
-                "It wasn't possible to insert on the persistent storage"
-            ));
+            return HttpResponse::BadRequest()
+                .body("It wasn't possible to insert on the persistent storage".to_string());
         }
         Ok(r) => r,
     };
 
-    return match diplomat::redis::task::insert(
+    match diplomat::redis::task::insert(
         timestamp_next_execution_time,
         &task,
         data.redis_pool.to_owned(),
     )
     .await
     {
-        Err(_) => HttpResponse::BadRequest().body(format!("It wasn't possible to insert on cache")),
+        Err(_) => {
+            HttpResponse::BadRequest().body("It wasn't possible to insert on cache".to_string())
+        }
         Ok(_) => HttpResponse::Ok().body("Ok"),
-    };
+    }
 }
 
 #[post("/echo")]

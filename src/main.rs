@@ -1,11 +1,13 @@
 use actix_web::{web, App, HttpServer};
+
+use http_in::*;
+
 mod adapters;
 mod components;
 mod diplomat;
 mod http_in;
 mod logic;
 mod schemas;
-use http_in::*;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
