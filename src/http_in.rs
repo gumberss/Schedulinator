@@ -1,4 +1,3 @@
-use serde_json;
 use std::str::FromStr;
 
 use actix_web::{get, post, web, HttpResponse, Responder};
@@ -40,7 +39,7 @@ async fn register(
     //todo: insert to the database
     let timestamp_next_execution_time = next_execution_time.unwrap().timestamp();
 
-    let insert_cache_result = diplomat::redis::insert_task(
+    let insert_cache_result = diplomat::redis::task::insert(
         timestamp_next_execution_time,
         &task,
         data.redis_pool.to_owned(),
