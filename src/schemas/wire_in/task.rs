@@ -4,6 +4,7 @@ use serde::Deserialize;
 pub struct Task {
     pub name: String,
     pub schedule: String,
+    pub url: String,
     pub retry_policy: RetryPolicy,
     pub execution_timeout: i32,
 }

@@ -2,7 +2,7 @@ use crate::adapters::wire_out;
 use crate::schemas::models::task;
 use deadpool_redis::{redis::cmd, Pool};
 
-pub async fn insert_task(
+pub async fn insert(
     timestamp_next_execution_time: i64,
     task: &task::Task,
     pool: Pool,

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct Task {
     pub n: String,
     pub s: String,
+    pub u: String,
     pub rp: RetryPolicy,
     pub et: i32,
 }
