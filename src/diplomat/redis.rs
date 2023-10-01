@@ -17,9 +17,9 @@ pub async fn insert_task(
     let mut conn = conn_future.await.unwrap();
     let redis_task = wire_out::redis::task::to_dto(&task);
 
-    cmd("MULTI").query_async::<_, ()>(&mut *conn).await;
+    let _ = cmd("MULTI").query_async::<_, ()>(&mut *conn).await;
 
-    cmd("ZADD")
+    let _ = cmd("ZADD")
         .arg(&[
             "schedules",
             &timestamp_next_execution_time.to_string(),
@@ -29,7 +29,7 @@ pub async fn insert_task(
         .query_async::<_, ()>(&mut conn)
         .await;
 
-    cmd("SET")
+    let _ = cmd("SET")
         .arg(&[
             format!("task_{}", task.name.to_string()),
             serde_json::to_string(&redis_task).unwrap(),
