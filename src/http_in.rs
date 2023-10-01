@@ -49,7 +49,6 @@ async fn register(
 
     return match insert_cache_result {
         Err(_) => HttpResponse::BadRequest().body(format!("It wasn't possible to insert on Redis")),
-
         Ok(_) => HttpResponse::Ok().body("Ok"),
     };
 }
