@@ -8,8 +8,8 @@ pub async fn insert(
     pool: Pool,
 ) -> Result<(), String> {
     let conn_future = pool.get();
-    let mut conn = conn_future.await.unwrap();
     let redis_task = wire_out::redis::task::to_dto(&task);
+    let mut conn = conn_future.await.unwrap();
 
     let _ = cmd("MULTI").query_async::<_, ()>(&mut *conn).await;
 
