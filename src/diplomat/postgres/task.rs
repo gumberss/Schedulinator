@@ -1,6 +1,7 @@
-use crate::schemas::models::task;
 use deadpool_postgres::{GenericClient, Pool};
 use sql_builder::{quote, SqlBuilder};
+
+use crate::schemas::models::task;
 
 pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
     let conn_future = pool.get();
@@ -18,10 +19,10 @@ pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
         &quote(&task.name),
         &quote(&task.schedule),
         &quote(&task.url),
-        &quote(&task.execution_timeout),
-        &quote(&task.retry_policy.times),
-        &quote(&task.retry_policy.interval),
-        &quote(&task.retry_policy.jitter_limit),
+        &quote(task.execution_timeout),
+        &quote(task.retry_policy.times),
+        &quote(task.retry_policy.interval),
+        &quote(task.retry_policy.jitter_limit),
     ]);
 
     let this_sql = match sql_builder.sql() {
@@ -38,15 +39,15 @@ pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
         Ok(x) => x,
         Err(_) => return Err("Couldn't able to open the transaction".to_owned()),
     };
-    match transaction.batch_execute(&this_sql.as_str()).await {
+    match transaction.batch_execute(this_sql.as_str()).await {
         Ok(_) => (),
         Err(err) => {
-            println!("Error: {}", err.to_string());
+            println!("Error: {}", err);
             return Err("Couldn't able to execute the query".to_owned());
         }
     };
     match transaction.commit().await {
-        Ok(_) => return Ok(()),
-        Err(_) => return Err("Couldn't able to commit the query".to_owned()),
+        Ok(_) => Ok(()),
+        Err(_) => Err("Couldn't able to commit the query".to_owned()),
     }
 }

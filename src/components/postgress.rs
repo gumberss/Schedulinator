@@ -1,5 +1,6 @@
-use deadpool_postgres::{Config, Pool, PoolConfig, Runtime};
 use std::env;
+
+use deadpool_postgres::{Config, Pool, PoolConfig, Runtime};
 use tokio_postgres::NoTls;
 
 pub fn configure() -> Pool {
@@ -24,5 +25,5 @@ pub fn configure() -> Pool {
         .unwrap();
 
     cfg.pool = PoolConfig::new(pool_size).into();
-    return cfg.create_pool(Some(Runtime::Tokio1), NoTls).unwrap();
+    cfg.create_pool(Some(Runtime::Tokio1), NoTls).unwrap()
 }

@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-
 pub struct Task {
     pub n: String,
     pub s: String,
@@ -9,6 +8,7 @@ pub struct Task {
     pub rp: RetryPolicy,
     pub et: i32,
 }
+
 #[derive(Deserialize, Serialize)]
 pub struct RetryPolicy {
     pub t: i32,
