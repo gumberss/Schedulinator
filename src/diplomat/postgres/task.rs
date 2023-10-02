@@ -29,7 +29,6 @@ pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
         Ok(x) => x,
         Err(_) => return Err("Couldn't able to create the query".to_owned()),
     };
-    println!("Query: {}", this_sql);
 
     let mut conn = match conn_future.await {
         Ok(x) => x,
@@ -41,10 +40,12 @@ pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
     };
     match transaction.batch_execute(this_sql.as_str()).await {
         Ok(_) => (),
-        Err(err) => {
-            println!("Error: {}", err);
-            return Err("Couldn't able to execute the query".to_owned());
-        }
+        Err(err) => match err.code().unwrap().code() {
+            "23505" => {
+                return Err("There is a task with this name already in the database".to_owned())
+            }
+            _ => return Err("Couldn't able to execute the query".to_owned()),
+        },
     };
     match transaction.commit().await {
         Ok(_) => Ok(()),
