@@ -36,14 +36,11 @@ async fn register(
     if next_execution_time.is_none() {
         return HttpResponse::BadRequest().body("There is no next execution for the task");
     }
-    //todo: insert to the database
     let timestamp_next_execution_time = next_execution_time.unwrap().timestamp();
 
     match diplomat::postgres::task::insert(&task, data.postgress_pool.to_owned()).await {
         Err(err) => {
-            println!("error: {}", err.as_str());
-            return HttpResponse::BadRequest()
-                .body("It wasn't possible to insert on the persistent storage".to_string());
+            return HttpResponse::BadRequest().body(err.as_str().to_owned());
         }
         Ok(r) => r,
     };
