@@ -10,3 +10,9 @@ cargo install cargo-watch
 
 ### Watch Command
 cargo watch -q -c -w src/ -x run
+
+
+### Clippy
+cargo clippy 
+cargo clippy --fix
+Reference: https://github.com/rust-lang/rust-clippy
