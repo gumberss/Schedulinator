@@ -23,8 +23,8 @@ pub async fn insert(
     }
     let schedule = Schedule::from_str(&task.schedule);
 
-    if schedule.is_err() {
-        return Err(schedule.unwrap_err().to_string());
+    if let Err(err) = schedule {
+        return Err(err.to_string());
     }
 
     let next_execution_time = schedule.unwrap().upcoming(Utc).take(1).next();
