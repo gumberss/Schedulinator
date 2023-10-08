@@ -4,6 +4,7 @@ use http_in::*;
 
 mod adapters;
 mod components;
+mod controllers;
 mod diplomat;
 mod http_in;
 mod logic;
