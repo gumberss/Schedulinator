@@ -175,10 +175,11 @@ This solution enables the system to prioritize the restoration of critical tasks
 
 ### Insertion
 
-- [ ] Create the controller for the task
-- [ ] Limit the retry policy to 30 seconds
+- [X] Create the controller for the task
+- [X] Limit the retry policy to 30 seconds
 
 ### Task Run
+- [ ] Create a loop that execute the flow of the task run
 - [ ] Create a lua script that gets the top X elements and locks them
 - [ ] Make a request to the endpoint in parallel for each task
 - [ ] Calculate the next execution time for the task
