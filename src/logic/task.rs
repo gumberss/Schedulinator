@@ -1,5 +1,12 @@
 use crate::schemas::models::task;
 
+pub fn exceed_recurrence_time_limit(task: &task::Task) -> bool {
+    match worst_case_retry(&task.retry_policy) {
+        Some(worst_case_retry_time) => worst_case_retry_time > 30_000,
+        None => true,
+    }
+}
+
 pub fn is_minimum_recurrence_time_valid(task: &task::Task) -> bool {
     let minimum_recurrence_time = worst_case_retry(&task.retry_policy);
     match minimum_recurrence_time {

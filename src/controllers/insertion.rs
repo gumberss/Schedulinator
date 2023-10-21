@@ -12,6 +12,13 @@ pub async fn insert(
     redis_pool: &Pool,
     postgress_pool: &PostgressPool,
 ) -> Result<models::task::Task, String> {
+    if task::exceed_recurrence_time_limit(&task) {
+        let retry_worst_case = task::worst_case_retry(&task.retry_policy)
+            .unwrap()
+            .to_string();
+        return Err(format!("The worst case of the retry policy ({retry_worst_case}) exceed the recurrence limit time of 30 seconds"));
+    }
+
     let is_valid = task::is_minimum_recurrence_time_valid(&task);
 
     if !is_valid {
