@@ -1,4 +1,5 @@
 use actix_web::{web, App, HttpServer};
+use std::env;
 
 use http_in::*;
 
@@ -12,6 +13,7 @@ mod schemas;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env::set_var("RUST_BACKTRACE", "1");
     HttpServer::new(|| {
         App::new()
             .app_data(web::Data::new(schemas::components::AppComponents {
@@ -21,6 +23,7 @@ async fn main() -> std::io::Result<()> {
             }))
             .service(register)
             .service(echo)
+            .service(execute_test)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

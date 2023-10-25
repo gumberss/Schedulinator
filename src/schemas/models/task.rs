@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Task {
     pub name: String,
     pub schedule: String,
@@ -6,6 +7,7 @@ pub struct Task {
     pub execution_timeout: i32,
 }
 
+#[derive(Debug)]
 pub struct RetryPolicy {
     pub times: i32,
     pub interval: i32,
