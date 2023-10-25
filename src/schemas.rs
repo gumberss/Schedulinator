@@ -2,6 +2,7 @@ pub mod components;
 
 pub mod models {
     pub mod task;
+    pub mod task_execution;
 }
 
 pub mod wire_in {

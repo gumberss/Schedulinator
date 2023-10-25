@@ -28,3 +28,18 @@ async fn register(
 async fn echo(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
 }
+
+#[post("/execute")]
+async fn execute_test(data: web::Data<AppComponents>) -> impl Responder {
+    println!("Bora");
+    let a = controllers::execution::execute_tasks(&data.redis_pool).await;
+
+    match a {
+        Ok(o) => {
+            return HttpResponse::Ok();
+        }
+        Err(e) => {
+            return HttpResponse::BadRequest();
+        }
+    };
+}
