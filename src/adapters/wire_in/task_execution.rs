@@ -28,7 +28,7 @@ pub fn cache_to_model(pair: &[Value]) -> Option<TaskExecutionData> {
                     Some(TaskExecutionData {
                         name: member_str,
                         score: score_i64,
-                        task: task,
+                        task,
                     })
                 }
                 _ => None,
