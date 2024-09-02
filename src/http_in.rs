@@ -5,7 +5,7 @@ use crate::controllers;
 
 use crate::schemas::{components::AppComponents, wire_in, wire_out};
 
-#[get("/register")]
+#[post("/register")]
 async fn register(
     data: web::Data<AppComponents>,
     payload: web::Json<wire_in::task::Task>,
@@ -26,6 +26,7 @@ async fn register(
 
 #[post("/echo")]
 async fn echo(req_body: String) -> impl Responder {
+    dbg!("OLAAAAAA");
     HttpResponse::Ok().body(req_body)
 }
 
@@ -35,10 +36,10 @@ async fn execute_test(data: web::Data<AppComponents>) -> impl Responder {
     let a = controllers::execution::execute_tasks(&data.redis_pool).await;
 
     match a {
-        Ok(o) => {
+        Ok(_o) => {
             return HttpResponse::Ok();
         }
-        Err(e) => {
+        Err(_e) => {
             return HttpResponse::BadRequest();
         }
     };

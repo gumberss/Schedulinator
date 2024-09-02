@@ -35,10 +35,7 @@ pub async fn insert(
     let exec_results = cmd("EXEC").query_async::<_, ()>(&mut *conn).await;
 
     match exec_results {
-        Err(e) => {
-            println!("{}", e.to_string());
-            return Err("It wasn't possible to insert on Redis".to_string());
-        }
+        Err(_e) => Err("It wasn't possible to insert on Redis".to_string()),
         Ok(_) => Ok(()),
     }
 }
