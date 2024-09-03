@@ -171,6 +171,10 @@ Subsequently, this instance of the service can select the top X elements that ha
 
 This solution enables the system to prioritize the restoration of critical tasks. Once all critical tasks have been restored, lower-criticality tasks can follow suit. The effectiveness of this approach depends on the database's design and whether a 'criticality' column has been defined.
 
+### Redis reaches maximum memory or processing
+
+
+
 ## Tasks
 
 ### Insertion
