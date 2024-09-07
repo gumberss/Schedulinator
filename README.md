@@ -171,9 +171,13 @@ Subsequently, this instance of the service can select the top X elements that ha
 
 This solution enables the system to prioritize the restoration of critical tasks. Once all critical tasks have been restored, lower-criticality tasks can follow suit. The effectiveness of this approach depends on the database's design and whether a 'criticality' column has been defined.
 
-### Redis reaches maximum memory or processing
+### Redis reaches maximum memory or processing power
 
+There is a risk that after adding many tasks to Redis, the memory could reach its limit or the processing power might struggle to handle the load from hundreds of instances simultaneously retrieving and updating data in Redis.
 
+To address this issue, we can shard the Redis instance into multiple instances and use a hash function to determine which Redis instance to insert each task. It's also crucial to ensure a balanced distribution of services instances across shards that will proces the tasks, preventing situations where one shard has an excessive number of instances processing tasks while others have too few.
+
+Once we shard the data we can replicate thedata betwen shards, ensuring high-avaiability 
 
 ## Tasks
 
