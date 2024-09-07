@@ -188,10 +188,10 @@ Once we shard the data we can replicate thedata betwen shards, ensuring high-ava
 
 ### Task Run
 - [ ] Create a loop that execute the flow of the task run
-- [ ] Create a lua script that gets the top X elements and locks them
-- [ ] Make a request to the endpoint in parallel for each task
-- [ ] Calculate the next execution time for the task
-- [ ] Update redis sorted set with the next execution time of the task
+- [X] Create a lua script that gets the top X elements and locks them
+- [X] Make a request to the endpoint in parallel for each task
+- [X] Calculate the next execution time for the task
+- [X] Update redis sorted set with the next execution time of the task
 
 ### Retries
 - [ ] If the timeout exceeds,
