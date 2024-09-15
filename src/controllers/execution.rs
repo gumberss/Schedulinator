@@ -1,5 +1,6 @@
 use crate::diplomat::redis::task;
 use crate::logic;
+use crate::schemas::components::AppComponents;
 use crate::schemas::models::task_execution::TaskExecutionData;
 use deadpool_redis::redis::cmd;
 use deadpool_redis::redis::RedisError;
@@ -8,41 +9,47 @@ use deadpool_redis::Pool;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use reqwest::Client;
+use tokio::time::{sleep, Duration};
 
-pub async fn execute_tasks(redis_pool: &Pool) -> Result<Vec<TaskExecutionData>, String> {
-    let tasks_datas_response = task::get_tasks_to_be_processed(redis_pool).await;
+pub async fn execute_tasks(components: AppComponents) {
+    loop {
+        println!("{}", "simbora");
+        let redis_pool = components.redis_pool.clone();
 
-    let client = reqwest::Client::new();
+        let tasks_datas_response = task::get_tasks_to_be_processed(&redis_pool).await;
 
-    let updated_keys = match tasks_datas_response {
-        Ok(tasks_datas) => {
-            dbg!(tasks_datas.clone());
-            let mut tasks = tasks_datas
-                .into_iter()
-                .map(|execution_data: TaskExecutionData| {
-                    let client = client.clone();
-                    async move { process(execution_data, client.clone(), &redis_pool.clone()).await }
-                })
-                .collect::<FuturesUnordered<_>>();
+        let client = reqwest::Client::new();
 
-            let mut successes = Vec::new();
+        let updated_keys = match tasks_datas_response {
+            Ok(tasks_datas) => {
+                let mut tasks = tasks_datas
+                    .into_iter()
+                    .map(|execution_data: TaskExecutionData| {
+                        let client = client.clone();
+                        let redis_pool2 = components.redis_pool.clone();
+                        async move { process(execution_data, client.clone(), &redis_pool2).await }
+                    })
+                    .collect::<FuturesUnordered<_>>();
 
-            while let Some(result) = tasks.next().await {
-                match result {
-                    Ok(data) => successes.push(data),
-                    Err(e) => return Err(e), // Return the first encountered error
+                let mut successes = Vec::new();
+
+                while let Some(result) = tasks.next().await {
+                    match result {
+                        Ok(data) => successes.push(data),
+                        Err(e) => println!("{}", e),
+                    }
                 }
+
+                Ok(successes)
             }
+            Err(e) => Err(e),
+            _ => Err("Unexpected error".to_string()),
+        };
 
-            Ok(successes)
-        }
-        Err(e) => Err(e),
-        _ => Err("Unexpected error".to_string()),
-    };
+        dbg!(&updated_keys);
 
-    dbg!(&updated_keys);
-
-    updated_keys
+        sleep(Duration::from_millis(100)).await;
+    }
 }
 
 pub async fn process(
