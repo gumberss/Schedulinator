@@ -28,16 +28,15 @@ pub fn worst_case_retry(retry_policy: &task::RetryPolicy) -> Option<i32> {
 }
 
 pub fn new_score(current_score: i64, task: task::Task) -> i64 {
-    let current_score_time = DateTime::from_timestamp(current_score, 0);
+    //let current_score_time = DateTime::from_timestamp(current_score, 0);
 
     let schedule = Schedule::from_str(&task.schedule);
 
-    //todo: here you sohuld decide if you want the next time execution after the last exeution time
+    //todo: here you should decide if you want the next time execution after the last exeution time
     // or after the current time
     let next_execution_time = schedule
         .unwrap()
-        .after(&current_score_time.unwrap())
-        .take(1)
+        .after(&Utc::now()) //&current_score_time.unwrap()
         .next();
 
     return next_execution_time.unwrap().timestamp();
