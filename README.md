@@ -179,6 +179,14 @@ To address this issue, we can shard the Redis instance into multiple instances a
 
 Once we shard the data we can replicate thedata betwen shards, ensuring high-avaiability 
 
+## Results
+
+In an initial test on my local machine, I set all tasks to run at the start of each minute. Running five instances, I processed up to 10,000 tasks in 45 seconds. Ideally, all 10,000 tasks would be completed within a single second. Since the services are stateless, I scaled the system to 100 instances, which allowed me to process over 11,000 tasks in just four seconds.
+
+Even after scaling the services to 100 instances, Redis handled the load effortlessly without consuming significant processing power. This means I can easily increase the number of instances without any issues.
+
+Of course, in a real-world environment, it would likely take more time to process all the tasks due to network latency while sending requests and waiting for responses. However, if the business logic permits, we can minimize this delay by publishing messages instead of making synchronous requests.
+
 ## Tasks
 
 ### Insertion
