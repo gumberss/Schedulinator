@@ -10,7 +10,7 @@ pub fn configure() -> Pool {
             .unwrap_or("localhost".into())
             .to_string(),
     );
-    cfg.port = Some(5433);
+    cfg.port = Some(5432);
     cfg.dbname = Some(
         env::var("DB_NAME")
             .unwrap_or("schedules".into())

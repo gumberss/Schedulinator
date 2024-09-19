@@ -16,3 +16,9 @@ cargo watch -q -c -w src/ -x run
 cargo clippy 
 cargo clippy --fix
 Reference: https://github.com/rust-lang/rust-clippy
+
+
+### Docker
+docker build -t schedulinator .
+docker tag schedulinator gumberss/schedulinator:latest
+docker push gumberss/schedulinator:latest
