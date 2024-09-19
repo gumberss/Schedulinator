@@ -32,7 +32,10 @@ pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
 
     let mut conn = match conn_future.await {
         Ok(x) => x,
-        Err(_) => return Err("Couldn't able to get the connection".to_owned()),
+        Err(e) => {
+            println!("{}", e.to_string());
+            return Err("Couldn't able to get the connection".to_owned());
+        }
     };
     let transaction = match conn.transaction().await {
         Ok(x) => x,
@@ -44,7 +47,10 @@ pub async fn insert(task: &task::Task, pool: Pool) -> Result<(), String> {
             "23505" => {
                 return Err("There is a task with this name already in the database".to_owned())
             }
-            _ => return Err("Couldn't able to execute the query".to_owned()),
+            code => {
+                println!("{}", code);
+                return Err("Couldn't able to execute the query".to_owned());
+            }
         },
     };
     match transaction.commit().await {

@@ -13,7 +13,6 @@ use tokio::time::{sleep, Duration};
 
 pub async fn execute_tasks(components: AppComponents) {
     loop {
-        println!("{}", "simbora");
         let redis_pool = components.redis_pool.clone();
 
         let tasks_datas_response = task::get_tasks_to_be_processed(&redis_pool).await;

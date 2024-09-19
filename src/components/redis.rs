@@ -7,6 +7,7 @@ use deadpool_redis::{
 
 pub fn configure() -> Pool {
     let mut cfg = deadpool_redis::Config::default();
+    println!("{}", env::var("REDIS_HOST").unwrap_or("".into()));
     let redis_host = env::var("REDIS_HOST").unwrap_or("127.0.0.1".into());
     cfg.connection = Some(ConnectionInfo {
         addr: ConnectionAddr::Tcp(redis_host, 6379),

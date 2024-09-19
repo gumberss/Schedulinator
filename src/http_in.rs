@@ -11,7 +11,6 @@ async fn register(
     payload: web::Json<wire_in::task::Task>,
 ) -> impl Responder {
     let task = adapters::wire_in::task::to_model(&payload);
-
     match controllers::insertion::insert(task, &data.redis_pool, &data.postgress_pool).await {
         Err(e) => HttpResponse::BadRequest().body(
             serde_json::to_string(&wire_out::http::error::Error {
