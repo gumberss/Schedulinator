@@ -177,7 +177,7 @@ There is a risk that after adding many tasks to Redis, the memory could reach it
 
 To address this issue, we can shard the Redis instance into multiple instances and use a hash function to determine which Redis instance to insert each task. It's also crucial to ensure a balanced distribution of services instances across shards that will proces the tasks, preventing situations where one shard has an excessive number of instances processing tasks while others have too few.
 
-Once we shard the data we can replicate the data between shards, ensuring high-avaiability 
+Once we shard the data we can replicate the data between shards, ensuring high-availability.
 
 ## Results
 
